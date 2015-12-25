@@ -1,0 +1,98 @@
+﻿<Window x:Class="SymbolFetch.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SymbolFetch"
+        mc:Ignorable="d"
+        Title="PDB Downloader" Height="460" Width="525"
+        ResizeMode="CanMinimize">
+    <Window.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary 
+                  Source="Resources/StaticResources.xaml">
+            </ResourceDictionary>
+        </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+              CornerRadius="5,5,0,0" Margin="-1,0,-1,0" MouseLeftButtonDown="DragWindow">
+                <Label>PDB Downloader - An easier way to download Microsoft's public symbols for DLLs</Label>
+            </Border>
+
+            <StackPanel Name="stackPanelMain" Grid.Row="1" Margin="0,0,0,0">
+                <StackPanel.Background>
+                    <LinearGradientBrush>
+
+                        <GradientStop Color="LightSeaGreen" Offset="0.5" />
+                        <GradientStop Color="LightSkyBlue" Offset="1.0" />
+                        
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+                <Label Height="25" Name="lblFilesToDownload" Margin="5,0">Click on "Open Files" to select the DLL(s) for which the Symbol files(.PDB) are needed</Label>
+                <Button Name="btnopenFile" Click="btnopenFile_Click">Open File(s)</Button>
+                <ListBox Name="lstFiles" Visibility="Hidden" Height="70" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    
+                </ListBox>
+
+                <!--<RichTextBox Height="76" Name="rtbPaths" Margin="5,0" Background="Transparent" VerticalScrollBarVisibility="Auto">
+                    <FlowDocument>
+                        <Paragraph>http://generals.bn2vs.com/Generals mods/unitedfightingforce.zip</Paragraph>
+                        <Paragraph>http://generals.bn2vs.com/Generals mods/new_tech_mod_r3.zip</Paragraph>
+                        <Paragraph>http://smartgwt.googlecode.com/files/smartgwt-1.0b1.zip</Paragraph>
+                    </FlowDocument>
+                </RichTextBox>-->
+                <Label Height="25" Name="lblStatus" Margin="5,0" VerticalContentAlignment="Center">Status: </Label>
+                <Label Height="25" Name="lblFileSize" Margin="5,0" VerticalContentAlignment="Center">File Size: </Label>
+                <Label Height="25" Name="lblSavingTo" Margin="5,0" VerticalContentAlignment="Center">
+                    <Button Style="{StaticResource HyperlinkLikeButton}" Name="btnPath" Click="btnPath_Click"/>
+                </Label>
+                
+
+
+
+                <GroupBox Header="Total progress"  Name="gbTotalProgress" Margin="5,0">
+                    <StackPanel Name="stackPanel1">
+                        <ProgressBar Height="23" Name="pBarTotalProgress" Margin="5,3,5,0" VerticalAlignment="Top" Value="0"/>
+                        <Label Name="lblTotalProgress" Margin="5,0">Total Progress for all files</Label>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="File progress" Name="gbFileProgress" Margin="5,0">
+                    <StackPanel Name="stackPanel2">
+                        <ProgressBar Height="23" Name="pBarFileProgress" Margin="5,3,5,0" VerticalAlignment="Top" Value="0"/>
+                        <Label Name="lblFileProgress" Margin="5,0">Progress for current file</Label>
+                    </StackPanel>
+                </GroupBox>
+                <Border Name="border1" Height="auto" BorderBrush="DarkBlue">
+                    <StackPanel Name="stackPanel4" Orientation="Vertical" Height="45">
+                        <StackPanel Name="stackPanel3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5">
+                            <Button Height="23" Name="btnStart" Width="75" Click="btnStart_Click">Start</Button>
+                            <Button Height="23" Name="btnPause" Width="75" Margin="5,0,0,0" IsEnabled="False" Click="btnPause_Click">Pause</Button>
+                            <Button Height="23" Name="btnResume" Width="75" Margin="5,0,0,0" IsEnabled="False" Click="btnResume_Click">Resume</Button>
+                            <!--<Button Height="23" Name="btnStop" Width="75" Margin="5,0,0,0" IsEnabled="False" Click="btnStop_Click" Visibility="Hidden">Stop</Button>-->
+
+                        </StackPanel>
+                        <StackPanel Name="stackPanel5" Orientation="Horizontal" HorizontalAlignment="Center" Visibility="Hidden">
+                            <CheckBox Height="16" Name="cbUseProgress" Width="166" Checked="cbUseProgress_Checked" IsChecked="True">Calculate the total progress</CheckBox>
+                            <CheckBox Height="16" IsChecked="True" Name="cbDeleteCompletedFiles" Width="254" Margin="5,0,0,0" Checked="cbDeleteCompletedFiles_Checked">Delete complete downloads when cancelled</CheckBox>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+            <!--<Button HorizontalAlignment="Right" Margin="0,3,2,4" Name="btnClose" Width="24" Click="btnClose_Click">X</Button>-->
+            
+        </Grid>
+        <Label Height="25" Name="lblBug" Margin="5,0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+            <Button Style="{StaticResource HyperlinkLikeButton}" Name="btnBug" Click="btnBug_Click" />
+        </Label>
+        <Button Height="23" Width="40" VerticalAlignment="Bottom" Name="btnBulk" Content="Bulk?" Click="btnBulk_Click"/>
+
+    </Grid>
+</Window>

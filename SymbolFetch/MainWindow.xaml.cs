@@ -54,7 +54,7 @@ namespace SymbolFetch
 
         private void SetDownloadLocation()
         {
-            btnPath.Content = "Saving To: " + downloader.DownloadLocation;
+            btnPath.Content = "Saving to: " + downloader.DownloadLocation;
         }
 
         #endregion
@@ -145,7 +145,7 @@ namespace SymbolFetch
         {
             try
             {
-                Process.Start("mailto:rajrang@microsoft.com;puluthra@microsoft.com?subject=PDB Downloader ");
+                Process.Start("mailto:rajrang@microsoft.com;puluthra@microsoft.com;nanram@microsoft.com?subject=PDB Downloader ");
             }
             catch (Exception ex)
             {
@@ -242,7 +242,7 @@ namespace SymbolFetch
 
         private void downloader_Completed(object sender, EventArgs e)
         {
-            lblStatus.Content = String.Format("Download complete, downloaded {0} files.", downloader.Files.Count);
+            lblStatus.Content = String.Format("Download complete, downloaded {0} file(s).", downloader.Files.Count);
             if (downloader.Files.Count > 0 && pBarTotalProgress.Value > 0)
             {
                 pBarTotalProgress.Value = 100;

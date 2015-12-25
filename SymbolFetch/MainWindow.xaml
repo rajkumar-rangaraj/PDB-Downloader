@@ -24,7 +24,7 @@
             </Grid.RowDefinitions>
             <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
               CornerRadius="5,5,0,0" Margin="-1,0,-1,0" MouseLeftButtonDown="DragWindow">
-                <Label>PDB Downloader - An easier way to download Microsoft's public symbols for DLLs</Label>
+                <Label>PDB Downloader - An easier way to download Microsoft's public symbols</Label>
             </Border>
 
             <StackPanel Name="stackPanelMain" Grid.Row="1" Margin="0,0,0,0">
@@ -36,7 +36,7 @@
                         
                     </LinearGradientBrush>
                 </StackPanel.Background>
-                <Label Height="25" Name="lblFilesToDownload" Margin="5,0">Click on "Open Files" to select the DLL(s) for which the Symbol files(.PDB) are needed</Label>
+                <Label Height="25" Name="lblFilesToDownload" Margin="5,0">Click on "Open File(s)" to select DLL(s) or EXE(s) for which the Symbol files (.PDB) are needed</Label>
                 <Button Name="btnopenFile" Click="btnopenFile_Click">Open File(s)</Button>
                 <ListBox Name="lstFiles" Visibility="Hidden" Height="70" ScrollViewer.VerticalScrollBarVisibility="Auto">
                     
@@ -50,8 +50,8 @@
                     </FlowDocument>
                 </RichTextBox>-->
                 <Label Height="25" Name="lblStatus" Margin="5,0" VerticalContentAlignment="Center">Status: </Label>
-                <Label Height="25" Name="lblFileSize" Margin="5,0" VerticalContentAlignment="Center">File Size: </Label>
-                <Label Height="25" Name="lblSavingTo" Margin="5,0" VerticalContentAlignment="Center">
+                <Label Height="25" Name="lblFileSize" Margin="5,0" VerticalContentAlignment="Center">File size: </Label>
+                <Label Height="26" Name="lblSavingTo" Margin="5,0" VerticalContentAlignment="Center">
                     <Button Style="{StaticResource HyperlinkLikeButton}" Name="btnPath" Click="btnPath_Click"/>
                 </Label>
                 
@@ -61,7 +61,7 @@
                 <GroupBox Header="Total progress"  Name="gbTotalProgress" Margin="5,0">
                     <StackPanel Name="stackPanel1">
                         <ProgressBar Height="23" Name="pBarTotalProgress" Margin="5,3,5,0" VerticalAlignment="Top" Value="0"/>
-                        <Label Name="lblTotalProgress" Margin="5,0">Total Progress for all files</Label>
+                        <Label Name="lblTotalProgress" Margin="5,0">Total progress for all files</Label>
                     </StackPanel>
                 </GroupBox>
                 <GroupBox Header="File progress" Name="gbFileProgress" Margin="5,0">
@@ -89,7 +89,7 @@
             <!--<Button HorizontalAlignment="Right" Margin="0,3,2,4" Name="btnClose" Width="24" Click="btnClose_Click">X</Button>-->
             
         </Grid>
-        <Label Height="25" Name="lblBug" Margin="5,0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+        <Label Height="26" Name="lblBug" Margin="5,0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <Button Style="{StaticResource HyperlinkLikeButton}" Name="btnBug" Click="btnBug_Click" />
         </Label>
         <Button Height="23" Width="40" VerticalAlignment="Bottom" Name="btnBulk" Content="Bulk?" Click="btnBulk_Click"/>

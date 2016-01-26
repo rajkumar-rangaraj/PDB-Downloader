@@ -271,17 +271,35 @@ namespace SymbolFetch
                 bgwDownloader.ReportProgress((Int32)InvokeType.CalculatingFileNrRaiser, fileNr + 1);
                 try
                 {
+                    //Probe 1
                     HttpWebRequest webReq = (HttpWebRequest)WebRequest.Create(this.Files[fileNr].Path);
                     webReq.UserAgent = Constants.SymbolServer;
                     HttpWebResponse webResp = (HttpWebResponse)webReq.GetResponseNoException();
-                    if(webResp.StatusCode == HttpStatusCode.NotFound)
+
+                    //Probe 2
+                    if (webResp.StatusCode == HttpStatusCode.NotFound)
                     {
                         webResp = Retry(fileNr);
                     }
+
                     if (webResp.StatusCode == HttpStatusCode.OK)
                     {
                         m_totalSize += webResp.ContentLength;
                     }
+
+                    //Probe 3
+                    if (webResp.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        webResp = RetryFilePointer(fileNr);
+
+                        if (webResp.StatusCode == HttpStatusCode.OK)
+                        {
+                            string ignore = null;
+                            m_totalSize += ProcessFileSize(webResp, out ignore);                     
+                        }
+                    }
+
+
                     webResp.Close();
                 }
                 catch (Exception ex)
@@ -301,10 +319,55 @@ namespace SymbolFetch
             return (HttpWebResponse)webReq.GetResponseNoException();
         }
 
+        private HttpWebResponse RetryFilePointer(int fileNr)
+        {
+            string path = this.Files[fileNr].Path;
+            path = ProbeWithFilePointer(path);
+            var webReq = (HttpWebRequest)System.Net.WebRequest.Create(path);
+            webReq.UserAgent = Constants.SymbolServer;
+            return (HttpWebResponse)webReq.GetResponseNoException();
+        } 
+
+        private long ProcessFileSize(HttpWebResponse webResp, out string filePath)
+        {
+            long length = 0;
+            filePath = null;
+            Stream receiveStream = webResp.GetResponseStream();
+            Encoding encode = System.Text.Encoding.GetEncoding("utf-8");
+            StreamReader readStream = new StreamReader(receiveStream, encode);
+            Char[] read = new Char[webResp.ContentLength];
+            readStream.Read(read, 0, (int)webResp.ContentLength);
+
+            string file = new string(read, 0, (int)webResp.ContentLength);
+            file = file.Substring(5, file.Length - 5); //Removing PATH: from the output
+
+            System.IO.FileInfo fInfo = new System.IO.FileInfo(file);
+            if (fInfo.Exists)
+            {
+                length = fInfo.Length;
+                filePath = file;
+            }
+
+            return length;
+        }
+
+        private void DownloadFile(string srcFile, string filePath)
+        {
+            File.Copy(srcFile, filePath, true);
+        }
+
         private static string ProbeWithUnderscore(string path)
         {
             path = path.Remove(path.Length - 1);
             path = path.Insert(path.Length, "_");
+            return path;
+        }
+
+        private static string ProbeWithFilePointer(string path)
+        {
+            int position  = path.LastIndexOf('/');
+            path = path.Remove(position, (path.Length - position));
+            path = path.Insert(path.Length, "/file.ptr");
             return path;
         }
 
@@ -316,6 +379,7 @@ namespace SymbolFetch
         private void downloadFile(Int32 fileNr)
         {
             m_currentFileSize = 0;
+            bool fileptr = false;
             fireEventFromBgw(Event.FileDownloadAttempting);
 
             FileInfo file = this.Files[fileNr];
@@ -343,14 +407,22 @@ namespace SymbolFetch
                 if (webResp.StatusCode == HttpStatusCode.NotFound)
                 {
                     webResp = Retry(fileNr);
+
                     if (webResp.StatusCode == HttpStatusCode.OK)
                     {
                         file.IsCompressed = true;
                         size = webResp.ContentLength;
                     }
-                    else
+
+                    if (webResp.StatusCode == HttpStatusCode.NotFound)
                     {
-                        FailedFiles.Add(file.Name + " " + webResp.StatusCode + ": " + webResp.StatusDescription);
+                        webResp = RetryFilePointer(fileNr);
+                        fileptr = true;
+                    }
+
+                    if (webResp.StatusCode != HttpStatusCode.OK)
+                    {
+                        FailedFiles.Add(file.Name, webResp.StatusCode + ": " + webResp.StatusDescription);
                     }
                 }
                 else if(webResp.StatusCode == HttpStatusCode.OK)
@@ -365,58 +437,106 @@ namespace SymbolFetch
             if (webResp.StatusCode == HttpStatusCode.OK)
             {
                 Directory.CreateDirectory(dirPath);
-                m_currentFileSize = size;
-                fireEventFromBgw(Event.FileDownloadStarted);
-                //string name;
-                if (file.IsCompressed)
+                
+                if (fileptr)
                 {
-                    file.Name = ProbeWithUnderscore(file.Name);
-                }
-                string filePath = dirPath + "\\" +
-                    file.Name;
-                writer = new FileStream(filePath,
-                    System.IO.FileMode.Create);
+                    string filePath = dirPath + "\\" +
+                        file.Name;
+                    string srcFile = null;
+                    
+                    size = ProcessFileSize(webResp, out srcFile);
+                    var reader = new FileStream(srcFile, FileMode.Open,FileAccess.Read);
+                    writer = new FileStream(filePath,
+                        System.IO.FileMode.Create);
+                    m_currentFileSize = size;
+                    if (srcFile != null)
+                    {
+                        //   DownloadFile(srcFile, filePath);
+                        fireEventFromBgw(Event.FileDownloadStarted);
+                        m_currentFileProgress = 0;
+                        while (m_currentFileProgress < size && !bgwDownloader.CancellationPending)
+                        {
+                            while (this.IsPaused) { System.Threading.Thread.Sleep(100); }
 
-                if (exc != null)
-                {
-                    bgwDownloader.ReportProgress((Int32)InvokeType.FileDownloadFailedRaiser, exc);
+                            speedTimer.Start();
+
+                            currentPackageSize = reader.Read(readBytes, 0, this.PackageSize);
+
+                            m_currentFileProgress += currentPackageSize;
+                            m_totalProgress += currentPackageSize;
+                            fireEventFromBgw(Event.ProgressChanged);
+
+                            writer.Write(readBytes, 0, currentPackageSize);
+                            readings += 1;
+
+                            if (readings >= this.StopWatchCyclesAmount)
+                            {
+                                m_currentSpeed = (Int32)(this.PackageSize * StopWatchCyclesAmount * 1000 / (speedTimer.ElapsedMilliseconds + 1));
+                                speedTimer.Reset();
+                                readings = 0;
+                            }
+                        }
+                        reader.Close();
+                        writer.Close();
+                        speedTimer.Stop();
+                        //end
+                    }
                 }
                 else
                 {
-                    m_currentFileProgress = 0;
-                    while (m_currentFileProgress < size && !bgwDownloader.CancellationPending)
-                    {
-                        while (this.IsPaused) { System.Threading.Thread.Sleep(100); }
-
-                        speedTimer.Start();
-
-                        currentPackageSize = webResp.GetResponseStream().Read(readBytes, 0, this.PackageSize);
-
-                        m_currentFileProgress += currentPackageSize;
-                        m_totalProgress += currentPackageSize;
-                        fireEventFromBgw(Event.ProgressChanged);
-
-                        writer.Write(readBytes, 0, currentPackageSize);
-                        readings += 1;
-
-                        if (readings >= this.StopWatchCyclesAmount)
-                        {
-                            m_currentSpeed = (Int32)(this.PackageSize * StopWatchCyclesAmount * 1000 / (speedTimer.ElapsedMilliseconds + 1));
-                            speedTimer.Reset();
-                            readings = 0;
-                        }
-                    }
-
-                    speedTimer.Stop();
-                    writer.Close();
-
-                    webResp.Close();
+                    m_currentFileSize = size;
+                    //string name;
                     if (file.IsCompressed)
                     {
-                        HandleCompression(filePath);
+                        file.Name = ProbeWithUnderscore(file.Name);
+                    }
+                    string filePath = dirPath + "\\" +
+                        file.Name;
+                    writer = new FileStream(filePath,
+                        System.IO.FileMode.Create);
+
+                    if (exc != null)
+                    {
+                        bgwDownloader.ReportProgress((Int32)InvokeType.FileDownloadFailedRaiser, exc);
+                    }
+                    else
+                    {
+                        m_currentFileProgress = 0;
+                        while (m_currentFileProgress < size && !bgwDownloader.CancellationPending)
+                        {
+                            while (this.IsPaused) { System.Threading.Thread.Sleep(100); }
+
+                            speedTimer.Start();
+
+                            currentPackageSize = webResp.GetResponseStream().Read(readBytes, 0, this.PackageSize);
+
+                            m_currentFileProgress += currentPackageSize;
+                            m_totalProgress += currentPackageSize;
+                            fireEventFromBgw(Event.ProgressChanged);
+
+                            writer.Write(readBytes, 0, currentPackageSize);
+                            readings += 1;
+
+                            if (readings >= this.StopWatchCyclesAmount)
+                            {
+                                m_currentSpeed = (Int32)(this.PackageSize * StopWatchCyclesAmount * 1000 / (speedTimer.ElapsedMilliseconds + 1));
+                                speedTimer.Reset();
+                                readings = 0;
+                            }
+                        }
+
+                        speedTimer.Stop();
+                        writer.Close();
+
+                        webResp.Close();
+                        if (file.IsCompressed)
+                        {
+                            HandleCompression(filePath);
+                        }
+                       
                     }
                     if (!bgwDownloader.CancellationPending) { fireEventFromBgw(Event.FileDownloadSucceeded); }
-                }
+                }               
             }
             fireEventFromBgw(Event.FileDownloadStopped);
         }
@@ -566,7 +686,7 @@ namespace SymbolFetch
             }
         }
 
-        public List<string> FailedFiles = new List<string>();
+        public Dictionary<string,string> FailedFiles = new Dictionary<string, string>();
 
         public String LocalDirectory
         {

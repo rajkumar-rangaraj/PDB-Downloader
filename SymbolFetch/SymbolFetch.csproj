@@ -55,6 +55,12 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\iconpdb48.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -141,9 +147,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\iconpdb48.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="DownloadTool\PDBDownloader.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

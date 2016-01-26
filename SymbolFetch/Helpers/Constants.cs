@@ -1,4 +1,6 @@
-﻿namespace SymbolFetch.Helpers
+﻿using System.Configuration;
+
+namespace SymbolFetch.Helpers
 {
     public static class Constants
     {
@@ -13,13 +15,24 @@
         static Constants()
         {
             SymbolServer = @"Microsoft-Symbol-Server/10.0.10522.521";
-            DownloadFolder = @"c:\symbols";
+            DownloadFolder = @"c:\symcache";
             EnableBulkDownload = false;
         }
 
         #endregion
+    }
 
+    public static class ConfigurationReader
+    {
+        #region Settings
+        public static string SymbolServerUrl;
+        #endregion
 
-
+        #region Ctor
+        static ConfigurationReader()
+        {
+            SymbolServerUrl = ConfigurationManager.AppSettings["SymbolServer"];
+        }
+        #endregion
     }
 }

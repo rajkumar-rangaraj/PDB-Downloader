@@ -422,7 +422,7 @@ namespace SymbolFetch
 
                     if (webResp.StatusCode != HttpStatusCode.OK)
                     {
-                        FailedFiles.Add(file.Name, webResp.StatusCode + ": " + webResp.StatusDescription);
+                        FailedFiles.Add(file.Name + " " + webResp.StatusCode + ": " + webResp.StatusDescription);
                     }
                 }
                 else if(webResp.StatusCode == HttpStatusCode.OK)
@@ -436,55 +436,21 @@ namespace SymbolFetch
             }
             if (webResp.StatusCode == HttpStatusCode.OK)
             {
-                Directory.CreateDirectory(dirPath);
-                
+                Directory.CreateDirectory(dirPath);                
+
                 if (fileptr)
                 {
                     string filePath = dirPath + "\\" +
                         file.Name;
                     string srcFile = null;
-                    
                     size = ProcessFileSize(webResp, out srcFile);
-                    var reader = new FileStream(srcFile, FileMode.Open,FileAccess.Read);
-                    writer = new FileStream(filePath,
-                        System.IO.FileMode.Create);
-                    m_currentFileSize = size;
-                    if (srcFile != null)
-                    {
-                        //   DownloadFile(srcFile, filePath);
-                        fireEventFromBgw(Event.FileDownloadStarted);
-                        m_currentFileProgress = 0;
-                        while (m_currentFileProgress < size && !bgwDownloader.CancellationPending)
-                        {
-                            while (this.IsPaused) { System.Threading.Thread.Sleep(100); }
-
-                            speedTimer.Start();
-
-                            currentPackageSize = reader.Read(readBytes, 0, this.PackageSize);
-
-                            m_currentFileProgress += currentPackageSize;
-                            m_totalProgress += currentPackageSize;
-                            fireEventFromBgw(Event.ProgressChanged);
-
-                            writer.Write(readBytes, 0, currentPackageSize);
-                            readings += 1;
-
-                            if (readings >= this.StopWatchCyclesAmount)
-                            {
-                                m_currentSpeed = (Int32)(this.PackageSize * StopWatchCyclesAmount * 1000 / (speedTimer.ElapsedMilliseconds + 1));
-                                speedTimer.Reset();
-                                readings = 0;
-                            }
-                        }
-                        reader.Close();
-                        writer.Close();
-                        speedTimer.Stop();
-                        //end
-                    }
+                    if(srcFile != null)
+                        DownloadFile(srcFile, filePath);
                 }
                 else
                 {
                     m_currentFileSize = size;
+                    fireEventFromBgw(Event.FileDownloadStarted);
                     //string name;
                     if (file.IsCompressed)
                     {
@@ -533,9 +499,8 @@ namespace SymbolFetch
                         {
                             HandleCompression(filePath);
                         }
-                       
+                        if (!bgwDownloader.CancellationPending) { fireEventFromBgw(Event.FileDownloadSucceeded); }
                     }
-                    if (!bgwDownloader.CancellationPending) { fireEventFromBgw(Event.FileDownloadSucceeded); }
                 }               
             }
             fireEventFromBgw(Event.FileDownloadStopped);
@@ -686,7 +651,7 @@ namespace SymbolFetch
             }
         }
 
-        public Dictionary<string,string> FailedFiles = new Dictionary<string, string>();
+        public List<string> FailedFiles = new List<string>();
 
         public String LocalDirectory
         {

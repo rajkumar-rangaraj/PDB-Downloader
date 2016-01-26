@@ -1,5 +1,4 @@
-﻿using SymbolFetch.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,8 +13,6 @@ namespace SymbolFetch
         public string BuildUrl(string filename)
         {
             string downloadURL = string.Empty;
-            string SymbolServerUrl;
-
             if (File.Exists(filename))
             {
                 PeHeaderReader reader = new PeHeaderReader(filename);
@@ -37,12 +34,7 @@ namespace SymbolFetch
                     else
                         pdbName = reader.pdbName;
 
-                    SymbolServerUrl = ConfigurationReader.SymbolServerUrl;
-
-                    if(string.IsNullOrEmpty(SymbolServerUrl))
-                        downloadURL = "http://msdl.microsoft.com/download/symbols/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage.ToString() + "/" + pdbName;
-                    else
-                        downloadURL = SymbolServerUrl + "/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage.ToString() + "/" + pdbName;
+                    downloadURL = "http://msdl.microsoft.com/download/symbols/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage.ToString() + "/" + pdbName;
                 }
             }
             return downloadURL;

@@ -98,7 +98,7 @@ namespace SymbolFetch
                     downloader.Files.Add(fileInfo);
                 }
                 else
-                    downloader.FailedFiles.Add(item.ToString());
+                    downloader.FailedFiles.Add(item.ToString(), ": Invalid download URL, not probing");
             }
 
             downloader.Start();
@@ -258,12 +258,12 @@ namespace SymbolFetch
                 {
                     foreach (var item in downloader.FailedFiles)
                     {
-                        sr.WriteLine(item.ToString() + ": PDB Name invalid/Symbols not present/File not found");
+                        sr.WriteLine(item.Key + (!string.IsNullOrEmpty(item.Value) ? item.Value : ": Failure after probing"));
                     }
                 }
 
                 MessageBox.Show("Some symbols could not be downloaded. Please check the log file for more info.", "Error");
-                downloader.FailedFiles = new List<string>();
+                downloader.FailedFiles = new Dictionary<string, string>();
             }
         }
 

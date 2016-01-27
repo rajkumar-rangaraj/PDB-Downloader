@@ -339,13 +339,24 @@ namespace SymbolFetch
             readStream.Read(read, 0, (int)webResp.ContentLength);
 
             string file = new string(read, 0, (int)webResp.ContentLength);
-            file = file.Substring(5, file.Length - 5); //Removing PATH: from the output
 
-            System.IO.FileInfo fInfo = new System.IO.FileInfo(file);
-            if (fInfo.Exists)
+            if (file.Contains("PATH"))
             {
-                length = fInfo.Length;
-                filePath = file;
+                file = file.Substring(5, file.Length - 5); //Removing PATH: from the output
+
+                System.IO.FileInfo fInfo = new System.IO.FileInfo(file);
+                if (fInfo.Exists)
+                {
+                    length = fInfo.Length;
+                    filePath = file;
+                }
+            }
+            else
+            {
+                int position= webResp.ResponseUri.PathAndQuery.IndexOf(".pdb");
+                string fileName = webResp.ResponseUri.PathAndQuery.Substring(1, position + 3);
+                if (!FailedFiles.ContainsKey(fileName))
+                    FailedFiles.Add(fileName, " - No matching PDBs found - " + file);
             }
 
             return length;
@@ -422,7 +433,7 @@ namespace SymbolFetch
 
                     if (webResp.StatusCode != HttpStatusCode.OK)
                     {
-                        FailedFiles.Add(file.Name, webResp.StatusCode + ": " + webResp.StatusDescription);
+                        FailedFiles.Add(file.Name, " - " + webResp.StatusCode + "  " + webResp.StatusDescription);
                     }
                 }
                 else if(webResp.StatusCode == HttpStatusCode.OK)
@@ -443,14 +454,16 @@ namespace SymbolFetch
                     string filePath = dirPath + "\\" +
                         file.Name;
                     string srcFile = null;
-                    
+                    FileStream reader;
                     size = ProcessFileSize(webResp, out srcFile);
-                    var reader = new FileStream(srcFile, FileMode.Open,FileAccess.Read);
-                    writer = new FileStream(filePath,
-                        System.IO.FileMode.Create);
                     m_currentFileSize = size;
+
                     if (srcFile != null)
                     {
+                        reader = new FileStream(srcFile, FileMode.Open, FileAccess.Read);
+                        writer = new FileStream(filePath,
+                            System.IO.FileMode.Create);
+
                         //   DownloadFile(srcFile, filePath);
                         fireEventFromBgw(Event.FileDownloadStarted);
                         m_currentFileProgress = 0;
@@ -546,7 +559,7 @@ namespace SymbolFetch
             using (FileStream fs = new FileStream("Log.txt", FileMode.Append))
             using (StreamWriter sr = new StreamWriter(fs))
             {
-                sr.WriteLine(fileName + ": " + exc.Message);
+                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + ": " + exc.Message);
             }
         }
 
@@ -555,7 +568,7 @@ namespace SymbolFetch
             using (FileStream fs = new FileStream("Log.txt", FileMode.Append))
             using (StreamWriter sr = new StreamWriter(fs))
             {
-                sr.WriteLine(fileName + ": " + text);
+                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + ": " + text);
             }
         }
 

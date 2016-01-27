@@ -98,7 +98,7 @@ namespace SymbolFetch
                     downloader.Files.Add(fileInfo);
                 }
                 else
-                    downloader.FailedFiles.Add(item.ToString(), ": Invalid download URL, not probing");
+                    downloader.FailedFiles.Add(item.ToString(), " - No Debug information in PE header");
             }
 
             downloader.Start();
@@ -258,11 +258,17 @@ namespace SymbolFetch
                 {
                     foreach (var item in downloader.FailedFiles)
                     {
-                        sr.WriteLine(item.Key + (!string.IsNullOrEmpty(item.Value) ? item.Value : ": Failure after probing"));
+                        sr.WriteLine(DateTime.Now.ToString() + "   " +  item.Key + (!string.IsNullOrEmpty(item.Value) ? item.Value : " - Failure after probing"));
                     }
                 }
 
-                MessageBox.Show("Some symbols could not be downloaded. Please check the log file for more info.", "Error");
+                if (downloader.Files.Count > 1)
+                {
+                        MessageBox.Show("Some symbols could not be downloaded. Please check the log file for more info.", "Error");
+                }
+                else
+                    MessageBox.Show("Symbol could not be downloaded. Please check the log file for more info.", "Error");
+
                 downloader.FailedFiles = new Dictionary<string, string>();
             }
         }

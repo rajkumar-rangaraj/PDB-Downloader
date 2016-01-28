@@ -368,12 +368,20 @@ namespace SymbolFetch
                     if (loopexit == 0)
                     {
                         imageDebugDirectory = FromBinaryReader<IMAGE_DEBUG_DIRECTORY>(reader);
+                        long seekPosition = stream.Position;
 
                         if (imageDebugDirectory.Type == 0x2)
                         {
                             stream.Seek(imageDebugDirectory.PointerToRawData, SeekOrigin.Begin);
                             DebugInfo = FromBinaryReader<IMAGE_DEBUG_DIRECTORY_RAW>(reader);
                             loopexit = 1;
+
+                            //Downloading logic for .NET native images
+                            if (new string(DebugInfo.name).Contains(".ni."))
+                            {
+                                stream.Seek(seekPosition, SeekOrigin.Begin);
+                                loopexit = 0;
+                            }
                         }
 
                         if ((imageDebugDirectory.PointerToRawData != 0) &&

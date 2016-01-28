@@ -82,10 +82,7 @@ namespace SymbolFetch
         {
 
             var builder = new UrlBuilder();
-
-
             downloader.LocalDirectory = downloader.DownloadLocation;
-
             downloader.Files.Clear();
 
             foreach (var item in lstFiles.Items)
@@ -98,7 +95,10 @@ namespace SymbolFetch
                     downloader.Files.Add(fileInfo);
                 }
                 else
-                    downloader.FailedFiles.Add(item.ToString(), " - No Debug information in PE header");
+                {
+                    if(!downloader.FailedFiles.ContainsKey(item.ToString()))
+                        downloader.FailedFiles.Add(item.ToString(), " - No Debug information in PE header");
+                }
             }
 
             downloader.Start();

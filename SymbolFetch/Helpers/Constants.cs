@@ -15,8 +15,8 @@ namespace SymbolFetch.Helpers
         static Constants()
         {
             SymbolServer = @"Microsoft-Symbol-Server/10.0.10522.521";
-            DownloadFolder = @"c:\symcache";
-            EnableBulkDownload = false;
+            DownloadFolder = @"c:\symbols";
+            EnableBulkDownload = true;
         }
 
         #endregion

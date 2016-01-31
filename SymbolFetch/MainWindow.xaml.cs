@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Linq;
+
 
 namespace SymbolFetch
 {
@@ -170,6 +172,9 @@ namespace SymbolFetch
                 {
                     fileList.Add(line);
                 }
+
+                fileList = fileList.Distinct().ToList();
+
                 if (fileList.Count > 0)
                 {
                     lstFiles.Visibility = Visibility.Visible;

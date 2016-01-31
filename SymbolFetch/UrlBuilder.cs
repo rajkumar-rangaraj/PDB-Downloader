@@ -40,9 +40,9 @@ namespace SymbolFetch
                     SymbolServerUrl = ConfigurationReader.SymbolServerUrl;
 
                     if (string.IsNullOrEmpty(SymbolServerUrl))
-                        downloadURL = "http://msdl.microsoft.com/download/symbols/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage.ToString() + "/" + pdbName;
+                        downloadURL = "http://msdl.microsoft.com/download/symbols/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage + "/" + pdbName;
                     else
-                        downloadURL = SymbolServerUrl + "/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage.ToString() + "/" + pdbName;
+                        downloadURL = SymbolServerUrl + "/" + pdbName + "/" + reader.debugGUID.ToString("N").ToUpper() + reader.pdbage + "/" + pdbName;
                 }
             }
             return downloadURL;

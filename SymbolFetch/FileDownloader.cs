@@ -264,6 +264,7 @@ namespace SymbolFetch
         private void calculateFilesSize()
         {
             fireEventFromBgw(Event.CalculationFileSizesStarted);
+            bool headVerb = true;
             m_totalSize = 0;
             string message;
             for (Int32 fileNr = 0; fileNr < this.Files.Count; fileNr++)
@@ -274,12 +275,13 @@ namespace SymbolFetch
                     //Probe 1
                     HttpWebRequest webReq = (HttpWebRequest)WebRequest.Create(this.Files[fileNr].Path);
                     webReq.UserAgent = Constants.SymbolServer;
+                    webReq.Method = "HEAD";
                     HttpWebResponse webResp = (HttpWebResponse)webReq.GetResponseNoException();
 
                     //Probe 2
                     if (webResp.StatusCode == HttpStatusCode.NotFound)
                     {
-                        webResp = Retry(fileNr);
+                        webResp = Retry(fileNr, headVerb);
                     }
 
                     if (webResp.StatusCode == HttpStatusCode.OK)
@@ -310,12 +312,14 @@ namespace SymbolFetch
             fireEventFromBgw(Event.FileSizesCalculationComplete);
         }
 
-        private HttpWebResponse Retry(int fileNr)
+        private HttpWebResponse Retry(int fileNr, bool headVerb)
         {
             string path = this.Files[fileNr].Path;
             path = ProbeWithUnderscore(path);
             var webReq = (HttpWebRequest)System.Net.WebRequest.Create(path);
             webReq.UserAgent = Constants.SymbolServer;
+            if(headVerb)
+                webReq.Method = "HEAD";
             return (HttpWebResponse)webReq.GetResponseNoException();
         }
 
@@ -344,11 +348,18 @@ namespace SymbolFetch
             {
                 file = file.Substring(5, file.Length - 5); //Removing PATH: from the output
 
-                System.IO.FileInfo fInfo = new System.IO.FileInfo(file);
-                if (fInfo.Exists)
+                try
                 {
-                    length = fInfo.Length;
-                    filePath = file;
+                    System.IO.FileInfo fInfo = new System.IO.FileInfo(file);
+                    if (fInfo.Exists)   
+                    {
+                        length = fInfo.Length;
+                        filePath = file;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    WriteToLog(file, ex);
                 }
             }
             else
@@ -389,6 +400,7 @@ namespace SymbolFetch
 
         private void downloadFile(Int32 fileNr)
         {
+            bool headVerb = false;
             m_currentFileSize = 0;
             bool fileptr = false;
             fireEventFromBgw(Event.FileDownloadAttempting);
@@ -417,7 +429,7 @@ namespace SymbolFetch
                 webResp = (HttpWebResponse)webReq.GetResponseNoException();
                 if (webResp.StatusCode == HttpStatusCode.NotFound)
                 {
-                    webResp = Retry(fileNr);
+                    webResp = Retry(fileNr, headVerb);
 
                     if (webResp.StatusCode == HttpStatusCode.OK)
                     {
@@ -433,7 +445,8 @@ namespace SymbolFetch
 
                     if (webResp.StatusCode != HttpStatusCode.OK)
                     {
-                        FailedFiles.Add(file.Name, " - " + webResp.StatusCode + "  " + webResp.StatusDescription);
+                        if (!FailedFiles.ContainsKey(file.Name))
+                            FailedFiles.Add(file.Name, " - " + webResp.StatusCode + "  " + webResp.StatusDescription);
                     }
                 }
                 else if(webResp.StatusCode == HttpStatusCode.OK)
@@ -559,7 +572,7 @@ namespace SymbolFetch
             using (FileStream fs = new FileStream("Log.txt", FileMode.Append))
             using (StreamWriter sr = new StreamWriter(fs))
             {
-                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + ": " + exc.Message);
+                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + " - " + exc.Message);
             }
         }
 
@@ -568,7 +581,7 @@ namespace SymbolFetch
             using (FileStream fs = new FileStream("Log.txt", FileMode.Append))
             using (StreamWriter sr = new StreamWriter(fs))
             {
-                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + ": " + text);
+                sr.WriteLine(DateTime.Now.ToString() + "   " + fileName + " - " + text);
             }
         }
 

@@ -288,7 +288,7 @@ namespace SymbolFetch
         private IMAGE_DEBUG_DIRECTORY_RAW DebugInfo;
 
         private string _pdbName = "";
-        private int _pdbage = 0;
+        private string _pdbage = "";
         private Guid _debugGUID;
 
         #endregion Private Fields
@@ -402,7 +402,7 @@ namespace SymbolFetch
                     _pdbName = new string(DebugInfo.name);
                     _pdbName = _pdbName.Remove(_pdbName.IndexOf("\0"));
 
-                    _pdbage = (int)DebugInfo.age;
+                    _pdbage = DebugInfo.age.ToString("X");
                     _debugGUID = DebugInfo.guid;
                 }
 
@@ -425,7 +425,7 @@ namespace SymbolFetch
         #region Properties
 
         public string pdbName { get { return _pdbName; } }
-        public int pdbage { get { return _pdbage; } }
+        public string pdbage { get { return _pdbage; } }
         public Guid debugGUID { get { return _debugGUID; } }
         
         public bool Is32BitHeader

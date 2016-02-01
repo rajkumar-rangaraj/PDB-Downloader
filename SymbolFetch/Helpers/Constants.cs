@@ -16,7 +16,7 @@ namespace SymbolFetch.Helpers
         {
             SymbolServer = @"Microsoft-Symbol-Server/10.0.10522.521";
             DownloadFolder = @"c:\symbols";
-            EnableBulkDownload = true;
+            EnableBulkDownload = false;
         }
 
         #endregion

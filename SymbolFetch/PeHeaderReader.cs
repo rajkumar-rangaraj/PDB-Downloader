@@ -432,8 +432,9 @@ namespace SymbolFetch
         {
             get
             {
-                UInt16 IMAGE_FILE_32BIT_MACHINE = 0x0100;
-                return (IMAGE_FILE_32BIT_MACHINE & FileHeader.Characteristics) == IMAGE_FILE_32BIT_MACHINE;
+                //UInt16 IMAGE_FILE_32BIT_MACHINE = 0x0100;
+                //return (IMAGE_FILE_32BIT_MACHINE & FileHeader.Characteristics) == IMAGE_FILE_32BIT_MACHINE;
+                return (FileHeader.Machine == 332) ? true : false; //14C = X86
             }
         }
         

@@ -82,7 +82,6 @@ namespace SymbolFetch
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
-
             var builder = new UrlBuilder();
             downloader.LocalDirectory = downloader.DownloadLocation;
             downloader.Files.Clear();

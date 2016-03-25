@@ -28,4 +28,8 @@ To address these limitations, we have created the PDB Downloader. The PDB Downlo
 </ul>
 
 <b>Reference:</b>
-https://blogs.msdn.microsoft.com/webtopics/2016/03/07/pdb-downloader/
+https://blogs.msdn.microsoft.com/webtopics/2016/03/07/pdb-downloader/ <br/>
+
+<b>Usage:</b>
+https://blogs.msdn.microsoft.com/chiranth/2015/12/22/slow-response-automated-data-collection-using-freb-and-debug-diag/ <br/>
+https://blogs.msdn.microsoft.com/chiranth/2015/12/14/session-loss-due-to-application-domain-recycle-advanced/ <br/>

@@ -26,3 +26,6 @@ To address these limitations, we have created the PDB Downloader. The PDB Downlo
 <li>Symbols for 32 bit and 64 bit architecture.</li>
 </ul>
 </ul>
+
+<b>Reference:</b>
+https://blogs.msdn.microsoft.com/webtopics/2016/03/07/pdb-downloader/
